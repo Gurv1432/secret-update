@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SecretMsg - G PORTAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- THEME ENGINE --- */
+        :root {
+            --bg-color: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-color: #efb95e; /* Gold */
+            --button-bg: #efb95e;
+            --button-text: #000000;
+            --border-color: #333333;
+            --danger-color: #ff4757;
+            --success-color: #2ed573;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Global Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-primary); height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; }
+
+        #app-container {
+            width: 100%; max-width: 450px; height: 100%; 
+            background: var(--bg-color); position: relative; 
+            box-shadow: var(--shadow); overflow: hidden; 
+            display: flex; flex-direction: column;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* UI Components */
+        .btn-primary {
+            background: var(--button-bg); color: var(--button-text); border: none;
+            padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer;
+            width: 100%; font-size: 16px; margin-top: 15px; letter-spacing: 0.5px;
+            font-family: 'Montserrat', sans-serif; text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(239, 185, 94, 0.2); transition: 0.2s;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .btn-outline {
+            background: transparent; border: 1px solid var(--border-color);
+            color: var(--text-secondary); padding: 10px; border-radius: 8px;
+            cursor: pointer; font-size: 12px; margin-top: 5px;
+        }
+
+        .input-field {
+            width: 100%; padding: 15px; margin-bottom: 12px; 
+            border: 1px solid var(--border-color); border-radius: 12px;
+            background: var(--card-bg); color: var(--text-primary);
+            font-family: inherit; transition: border 0.3s;
+        }
+        .input-field:focus { border-color: var(--accent-color); }
+
+        /* Views */
+        .view {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; background: var(--bg-color);
+            transition: transform 0.3s ease; overflow-y: auto; padding-bottom: 80px;
+        }
+        .hidden { display: none !important; }
+
+        /* --- AUTH VIEW & LOGO (NO ANIMATION) --- */
+        #auth-view { justify-content: center; align-items: center; padding: 30px; }
+        
+        .logo-container {
+            width: 130px; height: 130px; margin-bottom: 20px;
+            border-radius: 20px; padding: 5px;
+            /* Static clean look */
+            background: transparent;
+        }
+        .app-logo-img {
+            width: 100%; height: 100%; border-radius: 20px; object-fit: contain;
+            /* Removed animation */
+        }
+
+        .app-title { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 5px; color: var(--text-primary); }
+        .tagline { color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; text-align: center; }
+
+        .auth-tabs { display: flex; width: 100%; margin-bottom: 20px; background: var(--card-bg); border-radius: 12px; padding: 4px; }
+        .auth-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; color: var(--text-secondary); border-radius: 8px; font-size: 14px; font-weight: 600; }
+        .auth-tab.active { background: var(--bg-color); color: var(--accent-color); }
+
+        .download-icon {
+            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+            background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 1px solid var(--border-color); z-index: 10;
+        }
+        .download-icon svg { width: 20px; fill: var(--accent-color); }
+
+        /* --- DASHBOARD --- */
+        .header {
+            padding: 20px; background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border-color);
+        }
+        .user-mini { display: flex; align-items: center; gap: 10px; }
+        .mini-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid transparent; }
+        
+        /* Premium Golden Border Logic via JS class */
+        .premium-border { border: 2px solid var(--accent-color); box-shadow: 0 0 10px rgba(239, 185, 94, 0.4); }
+        
+        .premium-badge { background: linear-gradient(90deg, #FFD700, #FFA500); color: black; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+
+        .card { background: var(--card-bg); margin: 15px 20px; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); }
+        
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 0 20px; margin-bottom: 20px; }
+        .menu-btn {
+            background: var(--card-bg); padding: 15px 10px; border-radius: 12px;
+            text-align: center; border: 1px solid var(--border-color); cursor: pointer;
+        }
+        .menu-btn span { display: block; font-size: 11px; color: var(--text-secondary); margin-top: 5px;}
+        .menu-btn svg { width: 24px; fill: var(--accent-color); }
+
+        /* Notification Bell */
+        .bell-icon { position: relative; cursor: pointer; margin-right: 15px; }
+        .bell-badge { 
+            position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; 
+            background: var(--danger-color); border-radius: 50%; border: 1px solid var(--bg-color); 
+        }
+
+        /* Inbox Items */
+        .list-item {
+            display: flex; align-items: center; padding: 15px; background: var(--card-bg);
+            border-radius: 12px; margin: 0 20px 10px 20px; border: 1px solid var(--border-color);
+            cursor: pointer; position: relative;
+        }
+        .blur-img { filter: blur(6px); opacity: 0.6; }
+        .blur-text { filter: blur(5px); color: var(--text-secondary); user-select: none; }
+        .online-dot { width: 8px; height: 8px; background: var(--success-color); border-radius: 50%; display: inline-block; margin-left: 5px; }
+        .premium-tag { 
+            position: absolute; top: 10px; right: 10px; font-size: 9px; 
+            background: var(--accent-color); color: black; padding: 2px 5px; border-radius: 3px; font-weight: bold;
+        }
+
+        /* Chat */
+        #chat-view { background: var(--bg-color); }
+        .chat-bubbles { padding: 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 16px; max-width: 80%; font-size: 14px; word-wrap: break-word; }
+        .msg.sent { align-self: flex-end; background: var(--accent-color); color: var(--button-text); border-bottom-right-radius: 4px; }
+        .msg.received { align-self: flex-start; background: var(--card-bg); color: var(--text-primary); border-bottom-left-radius: 4px; border: 1px solid var(--border-color); }
+
+        /* Particles */
+        .particle { position: absolute; width: 6px; height: 6px; background: var(--accent-color); border-radius: 50%; pointer-events: none; animation: pop 1s ease-out forwards; }
+        @keyframes pop { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); } }
+
+        /* Modals */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000;
+            display: flex; justify-content: center; align-items: flex-end;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card-bg); width: 100%; max-width: 450px;
+            border-radius: 24px 24px 0 0; padding: 30px;
+            max-height: 85vh; overflow-y: auto;
+            border-top: 1px solid var(--accent-color);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Admin Specific */
+        .admin-req-card { border-left: 3px solid var(--accent-color); margin-bottom: 10px; padding: 15px; background: #222; border-radius: 8px; }
+        .admin-user-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <div id="loading-screen" style="position: absolute; width:100%; height:100%; background:var(--bg-color); z-index:2000; display:flex; justify-content:center; align-items:center;">
+            <div class="logo-container" style="width: 80px; height: 80px;">
+                <img src="https://i.postimg.cc/pmgQkKS1/Gemini-Generated-Image-bbx0exbbx0exbbx0.png" class="app-logo-img">
+            </div>
+        </div>
+
+        <div id="auth-view" class="view">
+            <div class="download-icon" onclick="window.open('YOUR_DRIVE_LINK_HERE', '_blank')">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </div>
+
+            <div class="logo-container">
+                <img src="https://i.postimg.cc/pmgQkKS1/Gemini-Generated-Image-bbx0exbbx0exbbx0.png" class="app-logo-img">
+            </div>
+            
+            <h1 class="app-title">SecretMsg</h1>
+            <p class="tagline">G PORTAL • Premium Anonymous Chat</p>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchAuthTab('signup')">Signup</div>
+            </div>
+
+            <div id="login-form" style="width: 100%;">
+                <input type="email" id="login-email" class="input-field" placeholder="Email Address">
+                <input type="password" id="login-password" class="input-field" placeholder="Password">
+                <button onclick="login()" class="btn-primary">SECURE LOGIN</button>
+            </div>
+
+            <div id="signup-form" class="hidden" style="width: 100%;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <label for="signup-file" style="cursor: pointer;">
+                        <img id="signup-preview" src="https://via.placeholder.com/80" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px dashed var(--accent-color);">
+                        <div style="font-size: 11px; color: var(--accent-color); margin-top: 5px;">Upload Profile Pic</div>
+                    </label>
+                    <input type="file" id="signup-file" accept="image/*" class="hidden" onchange="previewImage(this, 'signup-preview')">
+                </div>
+                <input type="text" id="signup-username" class="input-field" placeholder="Unique Username">
+                <input type="text" id="signup-nickname" class="input-field" placeholder="Display Name">
+                <input type="email" id="signup-email" class="input-field" placeholder="Email">
+                <input type="password" id="signup-password" class="input-field" placeholder="Password">
+                <button onclick="signup()" class="btn-primary">CREATE ACCOUNT</button>
+            </div>
+            <p id="auth-error" style="color: var(--danger-color); font-size: 12px; margin-top: 15px;"></p>
+        </div>
+
+        <div id="dashboard-view" class="view hidden">
+            <div class="header">
+                <div class="user-mini">
+                    <img id="dash-img" src="" class="mini-avatar">
+                    <div>
+                        <div id="dash-name" style="font-weight: 700; font-size: 14px;">User</div>
+                        <div id="dash-badge" class="premium-badge hidden">PREMIUM</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="bell-icon" onclick="openNotifModal()">
+                        <svg viewBox="0 0 24 24" style="width:24px; fill:white;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+                        <div id="notif-badge" class="bell-badge hidden"></div>
+                    </div>
+                    <div id="admin-icon" class="hidden" onclick="showView('admin-view')" style="cursor: pointer;">🛠️</div>
+                    <div onclick="logout()" style="cursor: pointer; color: var(--danger-color);">⏻</div>
+                </div>
+            </div>
+
+            <div class="menu-grid" style="margin-top: 20px;">
+                <div class="menu-btn" onclick="openThemeModal()">
+                    <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8z"/></svg>
+                    <span>Themes</span>
+                </div>
+                <div class="menu-btn" onclick="openProfileModal()">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>Edit Profile</span>
+                </div>
+                <div class="menu-btn" onclick="openAboutModal()">
+                    <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                    <span>About</span>
+                </div>
+                <div class="menu-btn" onclick="talkToAdmin()">
+                    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                    <span>Talk to Admin</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Create Your Link 🔗</h3>
+                <textarea id="custom-msg-input" class="input-field" rows="2" placeholder="Write a question..."></textarea>
+                <button id="gen-btn" onclick="generateCustomLink(event)" class="btn-primary" style="margin-top: 5px;">GENERATE & COPY</button>
+            </div>
+
+            <div class="card">
+                <h3>Trending Questions 🔥</h3>
+                <div id="templates-list">
+                    <p style="text-align: center; color: var(--text-secondary);">Loading templates...</p>
+                </div>
+            </div>
+
+            <h3 style="padding: 0 20px; margin-bottom: 10px; font-family: 'Montserrat';">Inbox 📩</h3>
+            <div id="inbox-list" style="padding-bottom: 50px;"></div>
+        </div>
+
+        <div id="chat-view" class="view hidden">
+            <div class="header">
+                <div onclick="showView('dashboard-view')" style="cursor: pointer; font-size: 20px;">←</div>
+                <div class="user-mini">
+                    <img id="chat-header-img" src="" class="mini-avatar">
+                    <div>
+                        <div id="chat-header-name">User</div>
+                        <div id="chat-header-status" style="font-size: 10px; color: var(--accent-color);"></div>
+                    </div>
+                </div>
+                <button id="reveal-btn" onclick="openSubModal()" class="hidden" style="background: var(--text-primary); color: var(--bg-color); border: none; padding: 5px 10px; border-radius: 20px; font-size: 10px; font-weight: bold;">REVEAL 🔓</button>
+            </div>
+            <div id="chat-area" class="chat-bubbles"></div>
+            <div style="padding: 15px; background: var(--card-bg); display: flex; gap: 10px;">
+                <input type="text" id="chat-input" class="input-field" placeholder="Type a message..." style="margin-bottom: 0;">
+                <button onclick="sendChatMessage()" class="btn-primary" style="width: auto; margin-top: 0;">➤</button>
+            </div>
+        </div>
+
+        <div id="send-message-view" class="view hidden" style="justify-content: center; align-items: center; padding: 30px;">
+            <div class="logo-container" style="width: 80px; height: 80px;">
+                <img src="https://i.postimg.cc/pmgQkKS1/Gemini-Generated-Image-bbx0exbbx0exbbx0.png" class="app-logo-img">
+            </div>
+            <div class="card" style="width: 100%; text-align: center;">
+                <img id="receiver-img" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent-color); margin: 0 auto;">
+                <h2 id="receiver-name" style="margin: 10px 0; font-family: 'Montserrat';">User</h2>
+                <div id="public-prompt" style="font-size: 16px; margin-bottom: 20px; color: var(--accent-color); font-weight: 600;">"Send me a secret..."</div>
+                <textarea id="first-message" class="input-field" rows="4" placeholder="Type anonymously..."></textarea>
+                <button onclick="sendFirstMessage()" class="btn-primary">SEND SECRETLY 🤫</button>
+                <button onclick="window.location.href = window.location.pathname" class="btn-outline" style="width: 100%; margin-top: 10px;">Create My Own Link</button>
+            </div>
+        </div>
+
+        <div id="admin-view" class="view hidden">
+            <div class="header">
+                <div onclick="showView('dashboard-view')">←</div>
+                <h2>Admin Portal</h2>
+            </div>
+            
+            <div class="card">
+                <h3>Add Template</h3>
+                <input type="text" id="admin-template-input" class="input-field" placeholder="New question text...">
+                <button onclick="addTemplate()" class="btn-primary">ADD TEMPLATE</button>
+            </div>
+
+            <div class="card">
+                <h3>Manage Premium Users</h3>
+                <div id="premium-users-list" style="max-height: 200px; overflow-y: auto;">Loading...</div>
+            </div>
+
+            <h3 style="padding: 0 20px;">Pending Approvals</h3>
+            <div id="admin-list" style="padding: 20px;"></div>
+        </div>
+
+    </div> <div id="sub-modal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-family:'Montserrat';">Upgrade to Premium 👑</h2>
+                <div onclick="closeModal('sub-modal')" style="cursor:pointer;">✕</div>
+            </div>
+            <img src="https://i.postimg.cc/Y4FCt7jj/PAYMENT-QR.jpg" style="width: 100%; border-radius: 12px; border: 2px solid var(--accent-color); margin-bottom: 20px;">
+            
+            <input type="text" id="sub-name" class="input-field" placeholder="Your Name">
+            <input type="text" id="sub-utr" class="input-field" placeholder="UTR / Transaction ID">
+            <label style="font-size: 12px; color: var(--text-secondary);">Upload Screenshot</label>
+            <input type="file" id="sub-file" class="input-field" accept="image/*">
+            <button onclick="submitSubscription()" class="btn-primary">SUBMIT REQUEST</button>
+        </div>
+    </div>
+
+    <div id="theme-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Select Theme 🎨</h3>
+            <div class="theme-grid" id="theme-options"></div>
+            <button onclick="closeModal('theme-modal')" class="btn-outline" style="width:100%; margin-top:20px;">Close</button>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Update Profile Pic 📸</h3>
+            <div style="text-align: center; margin: 20px 0;">
+                <img id="edit-preview" src="" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+            </div>
+            <input type="file" id="edit-file" class="input-field" onchange="previewImage(this, 'edit-preview')">
+            <button onclick="saveProfilePic(event)" class="btn-primary">SAVE CHANGES</button>
+            <button onclick="closeModal('profile-modal')" class="btn-outline" style="width:100%;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="notif-modal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between;">
+                <h3>Notifications 🔔</h3>
+                <div onclick="closeModal('notif-modal')">✕</div>
+            </div>
+            <div id="notif-list" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="about-modal" class="modal hidden">
+        <div class="modal-content" style="text-align: center;">
+            <div class="logo-container" style="width: 100px; height: 100px; margin: 0 auto; background: white;">
+                <img src="https://i.postimg.cc/mtSpkptn/DEVELOPER-LOGO.png" style="width:100%; height:100%; object-fit:contain;">
+            </div>
+            <h2 style="font-family:'Montserrat'; margin-top: 10px;">G PORTAL</h2>
+            <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 20px;">Development Studio</p>
+            
+            <div style="background: var(--bg-color); padding: 15px; border-radius: 12px; text-align: left; border: 1px solid var(--border-color); font-size: 13px;">
+                <p><strong>Location:</strong> Lucknow, India</p>
+                <p><strong>Contact:</strong> officialgauravshyamshukla@gmail.com</p>
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+                <p>Welcome to <strong>SecretMsg</strong>. We are a Lucknow-based development studio focused on building high-quality communication tools. Our goal is to keep you connected with friends and family through a secure and stylish platform.</p>
+                <p style="margin-top:10px;">Thank you for choosing G PORTAL for your daily conversations.</p>
+            </div>
+            <button onclick="closeModal('about-modal')" class="btn-primary" style="margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <div id="img-modal" class="modal hidden">
+        <div class="modal-content" style="background:transparent; border:none; padding:0; align-items:center;">
+            <img id="full-img" src="" style="max-width:100%; max-height:80vh; border-radius:8px;">
+            <a id="download-link" href="#" download="screenshot.jpg" class="btn-primary" style="text-align: center; text-decoration: none; margin-top: 15px; width: auto; padding: 10px 30px;">DOWNLOAD</a>
+            <button onclick="closeModal('img-modal')" class="btn-outline" style="width:auto; background: rgba(0,0,0,0.5); color: white; border: none; margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_iVFHBwLPjka-FJ2-UqNvI4Xz0V05cjE",
+            authDomain: "anonymous-message-a8be7.firebaseapp.com",
+            databaseURL: "https://anonymous-message-a8be7-default-rtdb.firebaseio.com",
+            projectId: "anonymous-message-a8be7",
+            storageBucket: "anonymous-message-a8be7.firebasestorage.app",
+            messagingSenderId: "404624660386",
+            appId: "1:404624660386:web:26629a1325f0815d4544fb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // --- CONSTANTS ---
+        const ADMIN_UID = "YOUR_ADMIN_UID_HERE"; // REPLACE THIS with actual Admin UID if you want "Talk to Admin" to work perfectly without manual check. 
+        // Note: The logic below dynamically finds admin for "Talk to Admin" if not hardcoded, but hardcoding is safer.
+
+        // --- THEMES ---
+        const themes = [
+            { name: 'Dark Premium', bg: '#0f0f0f', card: '#1a1a1a', accent: '#efb95e', text: '#fff' },
+            { name: 'Midnight Blue', bg: '#0a192f', card: '#112240', accent: '#64ffda', text: '#e6f1ff' },
+            { name: 'Pure Black', bg: '#000000', card: '#111111', accent: '#ffffff', text: '#ccc' },
+            { name: 'Royal Purple', bg: '#2d1b4e', card: '#432c7a', accent: '#d9a7c7', text: '#fff' },
+            { name: 'Forest', bg: '#1b262c', card: '#0f4c75', accent: '#bbe1fa', text: '#fff' },
+            { name: 'Crimson', bg: '#2b0505', card: '#4a0a0a', accent: '#ff4d4d', text: '#fff' },
+            { name: 'Hacker', bg: '#0d0d0d', card: '#1a1a1a', accent: '#00ff00', text: '#00ff00' },
+            { name: 'Ocean', bg: '#f0f4f8', card: '#ffffff', accent: '#0077b6', text: '#333' },
+            { name: 'Sunset', bg: '#2c001e', card: '#590d22', accent: '#ffba08', text: '#fff' },
+            { name: 'Slate', bg: '#1e293b', card: '#334155', accent: '#38bdf8', text: '#fff' }
+        ];
+
+        function applyTheme(index) {
+            const t = themes[index];
+            const r = document.documentElement.style;
+            r.setProperty('--bg-color', t.bg);
+            r.setProperty('--card-bg', t.card);
+            r.setProperty('--accent-color', t.accent);
+            r.setProperty('--button-bg', t.accent);
+            r.setProperty('--text-primary', t.text);
+            localStorage.setItem('appTheme', index);
+            closeModal('theme-modal');
+        }
+
+        function initThemes() {
+            const container = document.getElementById('theme-options');
+            themes.forEach((t, i) => {
+                const div = document.createElement('div');
+                div.className = 'theme-option';
+                div.style.backgroundColor = t.bg;
+                div.style.border = `2px solid ${t.accent}`;
+                div.onclick = () => applyTheme(i);
+                container.appendChild(div);
+            });
+            const saved = localStorage.getItem('appTheme') || 0;
+            applyTheme(saved);
+        }
+
+        // --- GLOBAL STATE ---
+        let currentUser = null;
+        let targetReceiverUid = new URLSearchParams(window.location.search).get('to');
+        let currentChatId = null;
+
+        // --- PARTICLES ANIMATION ---
+        function createGoldParticles(x, y) {
+            for(let i=0; i<10; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+                p.style.setProperty('--ty', (Math.random() - 0.5) * 100 + 'px');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1000);
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('load', () => {
+            initThemes();
+            setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 1500);
+        });
+
+        // --- AUTH & NAV ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                // Presence System
+                const userStatusRef = db.ref(`users/${user.uid}/status`);
+                const lastSeenRef = db.ref(`users/${user.uid}/lastSeen`);
+                db.ref('.info/connected').on('value', snap => {
+                    if (snap.val() === false) return;
+                    userStatusRef.onDisconnect().set('offline');
+                    lastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+                    userStatusRef.set('online');
+                });
+
+                db.ref(`users/${user.uid}`).on('value', snap => {
+                    currentUser.dbData = snap.val() || {};
+                    handleNav();
+                    listenForNotifications();
+                });
+            } else {
+                currentUser = null;
+                // Force Auth even if targetReceiverUid exists, logic handled in handleNav
+                handleNav();
+            }
+        });
+
+        function handleNav() {
+            // Case 1: Target Link exists AND User is NOT logged in -> Show Auth
+            if (targetReceiverUid && !currentUser) {
+                showView('auth-view');
+            } 
+            // Case 2: Target Link exists AND User IS logged in -> Show Send Message View
+            // BUT: Check if I am clicking my own link
+            else if (targetReceiverUid && currentUser && targetReceiverUid !== currentUser.uid) {
+                prepareSendMessageView();
+            }
+            // Case 3: Logged in, no link -> Dashboard
+            else if (currentUser) {
+                prepareDashboard();
+            } 
+            // Case 4: Not logged in, no link -> Auth
+            else {
+                showView('auth-view');
+            }
+        }
+
+        // --- DASHBOARD ---
+        function prepareDashboard() {
+            showView('dashboard-view');
+            const data = currentUser.dbData;
+            document.getElementById('dash-name').innerText = data.nickname || "User";
+            document.getElementById('dash-img').src = data.image || "https://via.placeholder.com/40";
+            
+            // Premium Styling
+            const dashImg = document.getElementById('dash-img');
+            const dashBadge = document.getElementById('dash-badge');
+            
+            if(data.isPremium) {
+                dashBadge.classList.remove('hidden');
+                dashImg.classList.add('premium-border');
+            } else {
+                dashBadge.classList.add('hidden');
+                dashImg.classList.remove('premium-border');
+            }
+
+            if(data.isAdmin) {
+                document.getElementById('admin-icon').classList.remove('hidden');
+                // Check pending for red dot
+                db.ref('payment_requests').on('value', s => {
+                    if(s.exists()) document.getElementById('notif-badge').classList.remove('hidden');
+                });
+            }
+
+            loadTemplates();
+            loadInbox();
+        }
+
+        // --- NOTIFICATIONS ---
+        function listenForNotifications() {
+            db.ref(`notifications/${currentUser.uid}`).on('value', snap => {
+                const badge = document.getElementById('notif-badge');
+                if(snap.exists()) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            });
+        }
+
+        function openNotifModal() {
+            document.getElementById('notif-modal').classList.remove('hidden');
+            // Reset Badge
+            document.getElementById('notif-badge').classList.add('hidden');
+            
+            const list = document.getElementById('notif-list');
+            list.innerHTML = 'Loading...';
+            
+            db.ref(`notifications/${currentUser.uid}`).once('value', snap => {
+                list.innerHTML = '';
+                if(!snap.exists()) {
+                    list.innerHTML = '<p>No new notifications.</p>';
+                    return;
+                }
+                snap.forEach(child => {
+                    const n = child.val();
+                    const el = document.createElement('div');
+                    el.style.cssText = "padding:10px; border-bottom:1px solid #333; font-size:13px;";
+                    el.innerText = n.text;
+                    list.appendChild(el);
+                    // Remove after reading (optional, good for cleanup)
+                    db.ref(`notifications/${currentUser.uid}/${child.key}`).remove();
+                });
+            });
+        }
+
+        // --- LINK LOGIC ---
+        function generateShareableText(question, link) {
+            return `*${question}* \n\n👇 Send me a secret message here:\n${link}`;
+        }
+
+        function generateCustomLink(e) {
+            if(e && currentUser.dbData.isPremium) createGoldParticles(e.clientX, e.clientY);
+            const text = document.getElementById('custom-msg-input').value.trim() || "Send me a secret message!";
+            const link = `${window.location.origin}${window.location.pathname}?to=${currentUser.uid}`;
+            const fullMsg = generateShareableText(text, link);
+            shareText(fullMsg);
+        }
+
+        function loadTemplates() {
+            db.ref('templates').on('value', snap => {
+                const div = document.getElementById('templates-list');
+                div.innerHTML = '';
+                if(!snap.exists()) {
+                    div.innerHTML = '<p style="text-align:center;font-size:12px;color:var(--text-secondary)">No templates yet.</p>';
+                    return;
+                }
+                snap.forEach(child => {
+                    const text = child.val();
+                    const el = document.createElement('div');
+                    el.className = 'template-item';
+                    el.innerHTML = `
+                        <div class="template-text">"${text}"</div>
+                        <div class="action-row">
+                            <button class="btn-primary" style="margin:0; font-size:12px; padding:8px;" onclick="useTemplate('${text}', event)">COPY</button>
+                            <button class="btn-outline" style="margin:0; font-size:12px; padding:8px; width:auto;" onclick="shareTemplate('${text}', event)">SHARE 📤</button>
+                        </div>
+                    `;
+                    div.appendChild(el);
+                });
+            });
+        }
+
+        function useTemplate(text, e) {
+            if(currentUser.dbData.isPremium) createGoldParticles(e.clientX, e.clientY);
+            // CRITICAL FIX: Link ALWAYS points to Current User
+            const link = `${window.location.origin}${window.location.pathname}?to=${currentUser.uid}`;
+            const fullMsg = generateShareableText(text, link);
+            navigator.clipboard.writeText(fullMsg).then(() => alert("Copied! Paste on WhatsApp/Instagram."));
+        }
+
+        function shareTemplate(text, e) {
+            if(currentUser.dbData.isPremium) createGoldParticles(e.clientX, e.clientY);
+            const link = `${window.location.origin}${window.location.pathname}?to=${currentUser.uid}`;
+            const fullMsg = generateShareableText(text, link);
+            window.open(`whatsapp://send?text=${encodeURIComponent(fullMsg)}`);
+        }
+
+        function shareText(text) {
+            if(navigator.share) {
+                navigator.share({ title: 'SecretMsg', text: text }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(text).then(() => alert("Link Copied!"));
+            }
+        }
+
+        // --- INBOX & CHAT ---
+        function loadInbox() {
+            db.ref(`user_chats/${currentUser.uid}`).on('value', snap => {
+                const div = document.getElementById('inbox-list');
+                div.innerHTML = '';
+                snap.forEach(child => {
+                    const chat = child.val();
+                    const partnerUid = chat.with;
+                    const isSender = (chat.sender === partnerUid); // "Anonymous" message to me
+                    const iAmPremium = currentUser.dbData.isPremium;
+                    
+                    // Default values for anonymous
+                    let name = "Anonymous";
+                    let img = "https://via.placeholder.com/40";
+                    let isPremiumPartner = false;
+                    let blurClass = isSender && !iAmPremium ? "blur-img" : "";
+                    let textBlur = isSender && !iAmPremium ? "blur-text" : "";
+
+                    // Fetch partner info
+                    db.ref(`users/${partnerUid}`).once('value', uSnap => {
+                        const u = uSnap.val();
+                        if(u) {
+                            // If I am premium OR it's a chat I started OR it's Admin
+                            if (iAmPremium || !isSender || u.isAdmin) {
+                                name = u.nickname;
+                                img = u.image;
+                                blurClass = "";
+                                textBlur = "";
+                            }
+                            isPremiumPartner = u.isPremium;
+                        }
+
+                        const el = document.createElement('div');
+                        el.className = 'list-item';
+                        // Premium Tag on Chat
+                        const premTag = isPremiumPartner ? `<div class="premium-tag">PREMIUM</div>` : '';
+                        
+                        el.innerHTML = `
+                            <img src="${img}" class="item-avatar ${blurClass}" style="width:45px; height:45px; border-radius:50%; margin-right:15px; object-fit:cover;">
+                            <div style="flex:1;">
+                                <div style="font-weight:600; font-size:14px;" class="${textBlur}">${name}</div>
+                                <div style="font-size:12px; color:var(--text-secondary);">${chat.lastMessage}</div>
+                            </div>
+                            ${premTag}
+                        `;
+                        el.onclick = () => openChat(child.key, partnerUid);
+                        div.appendChild(el);
+                    });
+                });
+            });
+        }
+
+        function openChat(chatId, partnerUid) {
+            currentChatId = chatId;
+            showView('chat-view');
+            const iAmPremium = currentUser.dbData.isPremium;
+            
+            db.ref(`users/${partnerUid}`).once('value', s => {
+                const u = s.val();
+                const isSender = (chatId.includes(partnerUid)); // rough check, refined by context
+
+                const headerImg = document.getElementById('chat-header-img');
+                const headerStatus = document.getElementById('chat-header-status');
+
+                // If Premium, show Real Name, Photo, Status
+                if (iAmPremium || u.isAdmin) {
+                    document.getElementById('chat-header-name').innerText = u.nickname;
+                    headerImg.src = u.image;
+                    
+                    // Online Status Logic
+                    if(u.status === 'online') headerStatus.innerText = "Online ●";
+                    else headerStatus.innerText = "Last seen: " + new Date(u.lastSeen).toLocaleTimeString();
+                    
+                    document.getElementById('reveal-btn').classList.add('hidden');
+                } 
+                // If Free, show Anonymous
+                else {
+                    document.getElementById('chat-header-name').innerText = "Anonymous";
+                    headerImg.src = "https://via.placeholder.com/40";
+                    headerStatus.innerText = "";
+                    document.getElementById('reveal-btn').classList.remove('hidden');
+                }
+            });
+
+            const chatArea = document.getElementById('chat-area');
+            chatArea.innerHTML = ''; // Clear prev
+            
+            db.ref(`chats/${chatId}`).off();
+            db.ref(`chats/${chatId}`).on('child_added', snap => {
+                const msg = snap.val();
+                const div = document.createElement('div');
+                div.className = `msg ${msg.sender === currentUser.uid ? 'sent' : 'received'}`;
+                div.innerText = msg.text;
+                chatArea.appendChild(div);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            });
+        }
+
+        function talkToAdmin() {
+            // Find Admin UID if not hardcoded
+            db.ref('users').orderByChild('isAdmin').equalTo(true).limitToFirst(1).once('value', snap => {
+                if(!snap.exists()) return alert("Admin not found.");
+                const adminUid = Object.keys(snap.val())[0];
+                const chatId = currentUser.uid < adminUid ? `${currentUser.uid}_${adminUid}` : `${adminUid}_${currentUser.uid}`;
+                
+                // Initialize chat if not exists
+                const meta = { with: adminUid, lastMessage: "Started chat with Admin", sender: currentUser.uid };
+                db.ref(`user_chats/${currentUser.uid}/${chatId}`).update(meta);
+                
+                openChat(chatId, adminUid);
+            });
+        }
+
+        function sendChatMessage() {
+            const text = document.getElementById('chat-input').value;
+            if(!text) return;
+            db.ref(`chats/${currentChatId}`).push({ sender:currentUser.uid, text });
+            
+            // Update inbox preview for both
+            const partnerUid = currentChatId.replace(currentUser.uid, '').replace('_', '');
+            
+            db.ref(`user_chats/${currentUser.uid}/${currentChatId}`).update({lastMessage: text});
+            db.ref(`user_chats/${partnerUid}/${currentChatId}`).update({lastMessage: text, sender: currentUser.uid, with: currentUser.uid});
+            
+            document.getElementById('chat-input').value = '';
+        }
+
+        // --- PUBLIC SEND VIEW ---
+        function prepareSendMessageView() {
+            showView('send-message-view');
+            db.ref(`users/${targetReceiverUid}`).once('value', s => {
+                const u = s.val();
+                if(u) {
+                    document.getElementById('receiver-name').innerText = u.nickname;
+                    document.getElementById('receiver-img').src = u.image;
+                }
+            });
+        }
+
+        function sendFirstMessage() {
+            const text = document.getElementById('first-message').value;
+            if(!text) return;
+            
+            const chatId = currentUser.uid < targetReceiverUid ? `${currentUser.uid}_${targetReceiverUid}` : `${targetReceiverUid}_${currentUser.uid}`;
+            
+            db.ref(`chats/${chatId}`).push({ sender: currentUser.uid, text });
+            
+            const meta = { with: currentUser.uid, lastMessage: text, sender: currentUser.uid };
+            db.ref(`user_chats/${targetReceiverUid}/${chatId}`).set(meta);
+            
+            const myMeta = { with: targetReceiverUid, lastMessage: text };
+            db.ref(`user_chats/${currentUser.uid}/${chatId}`).set(myMeta);
+
+            openChat(chatId, targetReceiverUid);
+        }
+
+        // --- SUBSCRIPTION & PROFILE ---
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function submitSubscription() {
+            const name = document.getElementById('sub-name').value;
+            const utr = document.getElementById('sub-utr').value;
+            const file = document.getElementById('sub-file').files[0];
+            
+            if(!name || !utr || !file) return alert("All fields required");
+            
+            const base64 = await readFileAsBase64(file);
+            db.ref('payment_requests').push({
+                uid: currentUser.uid, name, utr, screenshot: base64
+            });
+            alert("Sent! Please wait for approval.");
+            closeModal('sub-modal');
+        }
+
+        async function saveProfilePic(e) {
+            const file = document.getElementById('edit-file').files[0];
+            if(file) {
+                if(currentUser.dbData.isPremium) createGoldParticles(e.clientX, e.clientY);
+                const url = await readFileAsBase64(file);
+                db.ref(`users/${currentUser.uid}`).update({ image: url });
+                closeModal('profile-modal');
+            }
+        }
+
+        // --- ADMIN LOGIC ---
+        if(window.location.hash === '#admin') showView('admin-view'); 
+
+        function addTemplate() {
+            const t = document.getElementById('admin-template-input').value;
+            if(t) {
+                db.ref('templates').push(t);
+                alert("Template Added");
+            }
+        }
+
+        function loadAdminRequests() {
+            // 1. Pending Approvals
+            db.ref('payment_requests').on('value', snap => {
+                const div = document.getElementById('admin-list');
+                div.innerHTML = '';
+                snap.forEach(child => {
+                    const req = child.val();
+                    const el = document.createElement('div');
+                    el.className = 'admin-req-card';
+                    el.innerHTML = `
+                        <div style="color:var(--accent-color); font-weight:bold;">${req.name}</div>
+                        <div style="font-size:12px; margin-bottom:5px;">UTR: ${req.utr}</div>
+                        <div onclick="viewFullImage('${req.screenshot}')" style="height:80px; background:url(${req.screenshot}) center/cover; border-radius:5px; cursor:zoom-in;"></div>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="btn-primary" style="padding:5px; font-size:10px;" onclick="approveReq('${child.key}', '${req.uid}')">APPROVE</button>
+                            <button class="btn-outline" style="padding:5px; font-size:10px; border-color:var(--danger-color); color:var(--danger-color);" onclick="deleteReq('${child.key}')">DECLINE</button>
+                        </div>
+                    `;
+                    div.appendChild(el);
+                });
+            });
+
+            // 2. Active Premium Users (For Cancellation)
+            db.ref('users').orderByChild('isPremium').equalTo(true).on('value', snap => {
+                const div = document.getElementById('premium-users-list');
+                div.innerHTML = '';
+                snap.forEach(child => {
+                    const u = child.val();
+                    if(u.uid === currentUser.uid) return; // Don't cancel self
+                    const el = document.createElement('div');
+                    el.className = 'admin-user-row';
+                    el.innerHTML = `
+                        <span>${u.nickname}</span>
+                        <button style="background:var(--danger-color); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" onclick="cancelSub('${u.uid}')">Cancel Sub</button>
+                    `;
+                    div.appendChild(el);
+                });
+            });
+        }
+
+        function approveReq(key, uid) {
+            db.ref(`users/${uid}`).update({ isPremium: true });
+            db.ref(`notifications/${uid}`).push({text: "Your Premium Account is Activated! 👑", type: "success"});
+            db.ref(`payment_requests/${key}`).remove();
+        }
+        function deleteReq(key) { db.ref(`payment_requests/${key}`).remove(); }
+
+        function cancelSub(uid) {
+            if(confirm("Cancel this user's premium?")) {
+                db.ref(`users/${uid}`).update({ isPremium: false });
+                // Send Notification
+                db.ref(`notifications/${uid}`).push({
+                    text: "Your subscription has been stopped by Admin. Please contact support.",
+                    type: "alert"
+                });
+            }
+        }
+
+        // --- HELPERS ---
+        function switchAuthTab(t) {
+            document.querySelectorAll('.auth-tab').forEach(e => e.classList.remove('active'));
+            if(t==='login') {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('signup-form').classList.add('hidden');
+            } else {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('signup-form').classList.remove('hidden');
+            }
+        }
+
+        function viewFullImage(src) {
+            document.getElementById('full-img').src = src;
+            document.getElementById('download-link').href = src;
+            document.getElementById('img-modal').classList.remove('hidden');
+        }
+
+        // Standard Auth functions (Login/Signup) from previous context
+        async function signup() {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const username = document.getElementById('signup-username').value;
+            const nickname = document.getElementById('signup-nickname').value;
+            const fileInput = document.getElementById('signup-file');
+            if(!email) return alert("Fill fields");
+            try {
+                const c = await auth.createUserWithEmailAndPassword(email, password);
+                let img = "https://via.placeholder.com/80";
+                if(fileInput.files[0]) img = await readFileAsBase64(fileInput.files[0]);
+                await db.ref(`users/${c.user.uid}`).set({
+                    username, nickname, email, uid: c.user.uid, image: img, isPremium: false, isAdmin: false, status: 'online'
+                });
+            } catch(e) { document.getElementById('auth-error').innerText = e.message; }
+        }
+
+        function login() {
+            auth.signInWithEmailAndPassword(
+                document.getElementById('login-email').value,
+                document.getElementById('login-password').value
+            ).catch(e => alert(e.message));
+        }
+
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'admin-view') loadAdminRequests();
+        }
+
+        function openThemeModal() { document.getElementById('theme-modal').classList.remove('hidden'); }
+        function openProfileModal() { document.getElementById('profile-modal').classList.remove('hidden'); }
+        function openAboutModal() { document.getElementById('about-modal').classList.remove('hidden'); }
+        function openSubModal() { document.getElementById('sub-modal').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function logout() { auth.signOut(); }
+
+    </script>
+</body>
+</html>
